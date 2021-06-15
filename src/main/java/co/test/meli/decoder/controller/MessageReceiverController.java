@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.test.meli.decoder.dto.MessageDecoderRequestDTO;
@@ -52,9 +53,9 @@ public class MessageReceiverController {
 		}
 	}
 
-	@PostMapping(path= "/topsecret_split/{satellite_name}",
+	@RequestMapping(path= "/topsecret_split/{satellite_name}", method = {RequestMethod.POST,RequestMethod.GET},
 			consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-	public ResponseEntity<Object> topsecret_split(@PathVariable("satellite_name") String name,
+	public ResponseEntity<Object> topsecret_splitByPost(@PathVariable("satellite_name") String name,
 			RequestEntity<MessageDecoderRequestSplitDTO> request, HttpServletRequest httpRequest) {
 
 		try {
@@ -73,7 +74,7 @@ public class MessageReceiverController {
 		}
 	}
 	
-	
+
 	private void clean(HttpServletRequest httpRequest) {
 		
 		@SuppressWarnings("unchecked")
@@ -110,7 +111,6 @@ public class MessageReceiverController {
 			}
 		}
 		httpRequest.getSession().setAttribute(Constants.KEYWORD_SATELITE_LIST, satelites);
-		System.out.println(satelites.size());
 		return satelites;
 	}
 	
