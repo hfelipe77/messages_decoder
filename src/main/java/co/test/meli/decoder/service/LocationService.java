@@ -22,6 +22,12 @@ public class LocationService {
 	@Autowired
 	private Environment env;
 
+	/**
+	 * Metodo que procesa la informacion recibida por los satelites
+	 * @param satelites
+	 * @return Posicion (x,y) del emisor de los mensajes
+	 * @throws DecoderException
+	 */
 	public Position processLocation(List<Satelite> satelites) throws DecoderException {
 		
 		if(satelites.size() >= Constants.MINIMUM_POSITIONS_AND_DISTANCES) {
@@ -34,7 +40,12 @@ public class LocationService {
 		}
 	}
 
-	
+	/**
+	 * Metodo que obtiene las distancias a los satelites
+	 * @param satelites
+	 * @return
+	 * @throws DecoderException
+	 */
 	private double[] getSatelitesDistances(List<Satelite> satelites) throws DecoderException {
 		
 		try {
@@ -49,7 +60,12 @@ public class LocationService {
 		}
 	}
 	
-	
+	/**
+	 * Metodo que obtiene las posiciones (x,y) de los satelites
+	 * @param satelites
+	 * @return 
+	 * @throws DecoderException
+	 */
 	private double[][] getSatelitePositions(List<Satelite> satelites) throws DecoderException{
 		
 		try {
@@ -71,7 +87,13 @@ public class LocationService {
 		}
 	}
 	
-	
+	/**
+	 * Metodo que obtiene una posicion segun las distancias y posiciones de los satelites receptores
+	 * @param distances
+	 * @param satelitePositions
+	 * @return
+	 * @throws DecoderException
+	 */
 	private Position getLocation(double[] distances, double[][] satelitePositions ) throws DecoderException {
 		
 		try {

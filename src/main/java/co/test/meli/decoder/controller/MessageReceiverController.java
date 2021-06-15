@@ -75,6 +75,10 @@ public class MessageReceiverController {
 	}
 	
 
+	/**
+	 * Metodo que limpia la sesion una vez se completa la informacion de los satelites
+	 * @param httpRequest
+	 */
 	private void clean(HttpServletRequest httpRequest) {
 		
 		@SuppressWarnings("unchecked")
@@ -87,7 +91,13 @@ public class MessageReceiverController {
 		}
 	}
 
-	
+	/**
+	 * Metodo que administra el listado de satelites almacenado en session
+	 * @param name
+	 * @param reqDTO
+	 * @param httpRequest
+	 * @return
+	 */
 	private List<Satelite> manageSatelitesInSession(String name,MessageDecoderRequestSplitDTO reqDTO, HttpServletRequest httpRequest) {
 		
 		@SuppressWarnings("unchecked")

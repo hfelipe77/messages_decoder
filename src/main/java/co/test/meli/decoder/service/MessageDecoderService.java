@@ -17,6 +17,12 @@ public class MessageDecoderService {
 	@Autowired
 	private Environment env;
 
+	/**
+	 * Metodo que procesa los mensajes recibidos por los satelites
+	 * @param satelites
+	 * @return
+	 * @throws DecoderException
+	 */
 	public String processMessages(List<Satelite> satelites) throws DecoderException {
 
 		List<List<String>> messagesReceived = new ArrayList<List<String>>();
@@ -37,7 +43,13 @@ public class MessageDecoderService {
 		return getMessage(messagesReceived);
 	}
 
-
+	/**
+	 * Metodo que cuenta la totalidad de palabras en los mensajes recibidos
+	 * por los satelites
+	 * @param messages
+	 * @return cantidad de palabras
+	 * @throws DecoderException
+	 */
 	private int countWords(List<List<String>> messages) throws DecoderException {
 
 		try {
@@ -57,6 +69,12 @@ public class MessageDecoderService {
 	}
 
 
+	/**
+	 * Metodo que determina el desfase entre los mensajes recibidos
+	 * @param messages
+	 * @param countWords
+	 * @throws DecoderException
+	 */
 	private void determineGap(List<List<String>> messages, int countWords) throws DecoderException {
 
 		try {
@@ -76,7 +94,12 @@ public class MessageDecoderService {
 	}
 
 
-
+	/**
+	 * Metodo que obtiene el mensaje final
+	 * @param messages
+	 * @return
+	 * @throws DecoderException
+	 */
 	private String getMessage(List<List<String>> messages) throws DecoderException {
 
 		try {
