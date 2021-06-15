@@ -7,7 +7,12 @@ public class Satelite {
 	private String[] message;
 	
 	public Satelite() {
-		
+	}
+	
+	public Satelite(String name,double distance,String[] message) {
+		this.name = name;
+		this.distance = distance;
+		this.message = message;
 	}
 	
 	public String getName() {

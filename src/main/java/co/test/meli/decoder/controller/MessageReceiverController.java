@@ -1,53 +1,117 @@
 package co.test.meli.decoder.controller;
 
-import org.apache.commons.math3.fitting.leastsquares.LevenbergMarquardtOptimizer;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lemmingapex.trilateration.NonLinearLeastSquaresSolver;
-import com.lemmingapex.trilateration.TrilaterationFunction;
-
 import co.test.meli.decoder.dto.MessageDecoderRequestDTO;
+import co.test.meli.decoder.dto.MessageDecoderRequestSplitDTO;
 import co.test.meli.decoder.dto.MessageDecoderResponseDTO;
-import co.test.meli.decoder.entities.Position;
+import co.test.meli.decoder.entities.Satelite;
+import co.test.meli.decoder.exception.DecoderException;
 import co.test.meli.decoder.service.LocationService;
 import co.test.meli.decoder.service.MessageDecoderService;
+import co.test.meli.decoder.utils.Constants;
 
 @RestController
 @RequestMapping(path = "${context.path}")
 public class MessageReceiverController {
-	
+
 	@Autowired
-	LocationService service;
+	LocationService location;
 	@Autowired
 	MessageDecoderService msg;
-	
-	@PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-	public ResponseEntity<Object> topsecret(RequestEntity<MessageDecoderRequestDTO>  request) {
-		
-		MessageDecoderRequestDTO req = (MessageDecoderRequestDTO)request.getBody();
-		
-		double[][] pointsList = {{-500,-200},{100,-100}, {500,100}};
-		double[] distances = {100.0,115.5,142.7};
-		
-		TrilaterationFunction trilaterationFunction = new TrilaterationFunction(pointsList, distances);
-		NonLinearLeastSquaresSolver nSolver = new NonLinearLeastSquaresSolver(trilaterationFunction, new LevenbergMarquardtOptimizer());
+	@Autowired
+	private Environment env;
 
-		double[] pos = nSolver.solve().getPoint().toArray();
-		MessageDecoderResponseDTO res = new MessageDecoderResponseDTO();
-		Position position = new Position();
-		position.setX(pos[0]);
-		position.setY(pos[1]);
-		res.setPosition(position);
-		res.setMessage("mensaje de prueba");
-		
-		return ResponseEntity.status(HttpStatus.OK).body(res);
+	@PostMapping(path= "/topsecret",consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
+	public ResponseEntity<Object> topsecret(RequestEntity<MessageDecoderRequestDTO> request) {
+
+		try {
+			MessageDecoderRequestDTO req = (MessageDecoderRequestDTO)request.getBody();
+			MessageDecoderResponseDTO res = new MessageDecoderResponseDTO();
+
+			res.setPosition(location.processLocation(req.getSatellites()));
+			res.setMessage(msg.processMessages(req.getSatellites()));
+
+			return ResponseEntity.status(HttpStatus.OK).body(res);
+		} catch (DecoderException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		}
 	}
 
+	@PostMapping(path= "/topsecret_split/{satellite_name}",
+			consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
+	public ResponseEntity<Object> topsecret_split(@PathVariable("satellite_name") String name,
+			RequestEntity<MessageDecoderRequestSplitDTO> request, HttpServletRequest httpRequest) {
+
+		try {
+			MessageDecoderRequestSplitDTO req = (MessageDecoderRequestSplitDTO) request.getBody();
+			MessageDecoderResponseDTO res = new MessageDecoderResponseDTO();
+			clean(httpRequest);
+			
+			List<Satelite> satelites = manageSatelitesInSession(name, req, httpRequest);
+			
+			res.setPosition(location.processLocation(satelites));
+			res.setMessage(msg.processMessages(satelites));
+			return ResponseEntity.status(HttpStatus.OK).body(res);
+
+		} catch (DecoderException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+		}
+	}
+	
+	
+	private void clean(HttpServletRequest httpRequest) {
+		
+		@SuppressWarnings("unchecked")
+		List<Satelite> satelites = (List<Satelite>) httpRequest.getSession().getAttribute(Constants.KEYWORD_SATELITE_LIST);
+		int satelitesCount = env.getProperty(Constants.KEYWORD_SATELITES_NAME).split(Constants.SEPARATOR).length;
+		
+		if(null != satelites && 
+				satelites.size() == satelitesCount) {
+			httpRequest.getSession().invalidate();
+		}
+	}
+
+	
+	private List<Satelite> manageSatelitesInSession(String name,MessageDecoderRequestSplitDTO reqDTO, HttpServletRequest httpRequest) {
+		
+		@SuppressWarnings("unchecked")
+		List<Satelite> satelites = (List<Satelite>) httpRequest.getSession().getAttribute(Constants.KEYWORD_SATELITE_LIST);
+		boolean exist = Boolean.FALSE;
+
+		if(null == satelites || satelites.isEmpty()) {
+			satelites = new ArrayList<Satelite>();
+		}
+		
+		if(satelites.size() == 0) {
+			satelites.add(new Satelite(name,reqDTO.getDistance(),reqDTO.getMessage()));
+		} else {
+			for(Satelite satelite : satelites) {
+				if(satelite.getName().equals(name)) {
+					exist = Boolean.TRUE;
+				}
+			}
+			if(!exist) {
+				satelites.add(new Satelite(name,reqDTO.getDistance(),reqDTO.getMessage()));
+			}
+		}
+		httpRequest.getSession().setAttribute(Constants.KEYWORD_SATELITE_LIST, satelites);
+		System.out.println(satelites.size());
+		return satelites;
+	}
+	
 }
