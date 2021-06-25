@@ -23,3 +23,7 @@ Decoder es una proyecto el cual determina la posiscion de una nave y un mensaje 
 * [Eclipse 2020-09](https://www.eclipse.org/downloads/packages/release/2020-09) - IDE usado para el desarrollo3.
 * [Postman](https://www.postman.com/) - Cliente Rest usado para las pruebas
 
+### API en Heroku
+El API se encuentra hosteado en heroku con los siguientes endPoints.
+ * https://decoder-messages.herokuapp.com/api/v1/topsecret
+ * https://decoder-messages.herokuapp.com/api/v1/topsecret_split/{satellite_name}
